@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>System Party</title>
+
+<style>
+body {
+    margin: 0;
+    background: black;
+    color: #00ff9f;
+    font-family: monospace;
+    overflow: hidden;
+}
+
+/* MATRIX */
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+/* PANTALLAS */
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+.active { display: flex; }
+
+/* INPUT */
+input {
+    padding: 10px;
+    background: black;
+    border: 1px solid #00ff9f;
+    color: #00ff9f;
+    margin: 5px;
+}
+
+/* BARRA */
+.bar {
+    width: 300px;
+    height: 20px;
+    border: 1px solid #00ff9f;
+}
+
+.bar div {
+    height: 100%;
+    width: 0%;
+    background: #00ff9f;
+}
+
+/* BOTONES */
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    border: 2px solid #00ff9f;
+    background: transparent;
+    color: #00ff9f;
+    cursor: pointer;
+}
+
+/* PANEL */
+.panel {
+    background: rgba(0,0,0,0.9);
+    border: 2px solid #00ff9f;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+/* PERSONAJE */
+#personaje {
+    position: absolute;
+    bottom: 20px;
+    left: -120px;
+    width: 64px;
+    height: 64px;
+}
+#sprite {
+    width: 64px;
+    height: 64px;
+    background: url("https://i.imgur.com/6X12QbP.png");
+    background-size: cover;
+}
+.walk {
+    animation: walk 0.4s steps(4) infinite;
+}
+@keyframes walk {
+    from { background-position: 0; }
+    to { background-position: -256px; }
+}
+
+/* DIÁLOGO */
+#dialogoBox {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0,0,0,0.95);
+    border-top: 2px solid #00ff9f;
+    padding: 20px;
+}
+
+/* GLITCH */
+.glitch {
+    animation: glitch 0.2s infinite;
+}
+@keyframes glitch {
+    0% { text-shadow: 2px 2px red; }
+    50% { text-shadow: -2px -2px blue; }
+    100% { text-shadow: 2px -2px green; }
+}
+
+#dragon {
+    position: fixed;
+    top: 20%;
+    left: -100px;
+    font-size: 40px;
+    opacity: 0.7;
+    filter: drop-shadow(0 0 10px #00ff9f);
+    pointer-events: none;
+}
+
+
+
+</style>
+</head>
+
+<body>
+<div id="bootScreen" class="screen active">
+    <pre id="bootText"></pre>
+</div>
+
+<canvas id="matrix"></canvas>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="screen ">
+    <h2>Acceso requerido</h2>
+    <input type="text" id="nombre" placeholder="Tu nombre">
+    <input type="password" id="pass" placeholder="Contraseña">
+    <button onclick="verificar()">ENTRAR</button>
+</div>
+
+<!--INICIANDO-->
+<div id="initScreen" class="screen">
+    <h2>Iniciando sistema...</h2>
+    <div class="bar"><div id="initBar"></div></div>
+</div>
+
+<!-- INVITACIÓN -->
+<div id="invScreen" class="screen">
+    <div class="panel">
+        <h1>Mis 18 Darian</h1>
+        <p>📅 Fecha: 01/04/2026</p>
+        <p>🕒 Hora: 13:30HS</p>
+        <p>📍 Lugar: Arismendi 6420</p>
+        <p>Las bebidas bebidas no estan incluidas(Alcohol)</p>
+        <p>Traer bebidas a su gusto</p>
+
+        <p id="contador">Cargando asistentes...</p>
+
+        <button onclick="confirmar()">CONFIRMAR ASISTENCIA</button>
+    </div>
+</div>
+
+<!-- PERSONAJE -->
+<div id="personaje"><div id="sprite"></div></div>
+
+<!-- DIÁLOGO -->
+<div id="dialogoBox"><div id="dialogoTexto"></div></div>
+
+<!-- SONIDOS -->
+<audio id="clickSound" src="sonidos/click.mp3"></audio>
+<audio id="confirmSound" src="sonidos/confirm.mp3"></audio>
+<audio id="bgMusic" src="sonidos/music.mp3" loop></audio>
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+
+
+
+<script>
+
+//boot hacker
+const bootLines = [
+    "Iniciando sistema...",
+    "Cargando modulos...",
+    "Verificando acceso...",
+    "Conectando con servidor...",
+    "Acceso permitido  ✔"
+];
+
+let i = 0;
+
+function bootSystem(){
+    if(i < bootLines.length){
+        document.getElementById("bootText").innerHTML += bootLines[i] + "\n";
+        i++;
+        setTimeout(bootSystem, 600);
+    } else {
+        setTimeout(()=>{
+            show("loginScreen")
+        }, 800);
+    }
+}
+
+bootSystem();
+
+
+// 🔥🔥🔥 PEGÁ TU CONFIG FIREBASE ACÁ 🔥🔥🔥
+const firebaseConfig = {
+    apiKey: "AIzaSyB3wqtUnaFEJmXBSm6LEwdEDBbSqr2i7ms",
+    authDomain: "invitacion18-58c79.firebaseapp.com",
+    projectId: "invitacion18-58c79",
+    storageBucket: "invitacion18-58c79.firebasestorage.app",
+    messagingSenderId: "1024364556649",
+    appId: "1:1024364556649:web:696e11768b66fb9d838df8"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* UI */
+function show(id){
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+/* LOGIN */
+let nombreGlobal="";
+
+function verificar(){
+    let nombre = document.getElementById("nombre").value;
+    let pass = document.getElementById("pass").value;
+
+    if(pass==="darian.18" && nombre!==""){
+        nombreGlobal = nombre;
+
+        document.getElementById("clickSound").play();
+        document.getElementById("bgMusic").play();
+
+        show("initScreen"); // 🔥 AHORA USA LA CARGA
+        iniciarSistema();
+
+    } else {
+        alert("Datos incorrectos");
+    }
+}
+
+function iniciarSistema(){
+    let progreso = 0;
+
+    let intervalo = setInterval(()=>{
+        progreso += 10;
+        document.getElementById("initBar").style.width = progreso + "%";
+
+        if(progreso >= 100){
+            clearInterval(intervalo);
+
+            // 👇 PERSONALIZACIÓN CON NOMBRE
+            document.querySelector("#invScreen h1").innerText =
+            "Hola " + nombreGlobal + ", estás invitado a mis 18 🎉";
+
+            show("invScreen");
+            cargarContador();
+        }
+    },150);
+}
+
+/* CONTADOR EN VIVO */
+function cargarContador(){
+    db.collection("asistentes").onSnapshot(snapshot=>{
+        document.getElementById("contador").innerText =
+        "Asistentes confirmados: " + snapshot.size;
+    });
+}
+
+/* CONFIRMACIÓN RPG */
+function confirmar(){
+    escribirDialogo("¿Confirmas asistencia?\n\n");
+
+    setTimeout(()=>{
+        dialogoTexto.innerHTML += `
+        <button onclick="confirmarFinal()">SI</button>
+        <button onclick="cancelar()">NO</button>
+        `;
+    },800);
+}
+
+/* EVITAR DUPLICADOS + GUARDAR */
+function confirmarFinal(){
+    document.getElementById("confirmSound").play();
+    
+    let nombreUser = nombre.value;
+
+    db.collection("asistentes")
+    .where("nombre","==",nombreUser)
+    .get()
+    .then(snapshot=>{
+
+        if(!snapshot.empty){
+            escribirDialogo("⚠ Ya confirmaste asistencia.");
+            return;
+        }
+
+        db.collection("asistentes").add({
+            nombre: nombreUser,
+            fecha: new Date()
+        });
+
+        efectoGlitch();
+    });
+}
+
+/* CANCELAR */
+function cancelar(){
+    escribirDialogo("Cancelado.");
+}
+
+/* GLITCH + MENSAJE */
+function efectoGlitch(){
+    let box = document.getElementById("dialogoTexto");
+
+    box.classList.add("glitch");
+    box.innerText="████ GUARDANDO ████";
+
+    setTimeout(()=>{
+        box.classList.remove("glitch");
+        escribirDialogo("✔ Asistencia confirmada");
+    },1500);
+}
+
+/* TEXTO RPG */
+function escribirDialogo(texto){
+    let box = document.getElementById("dialogoTexto");
+    box.innerText="";
+    let i=0;
+
+    function escribir(){
+        if(i<texto.length){
+            box.innerText+=texto[i];
+            i++;
+            setTimeout(escribir,25);
+        }
+    }
+    escribir();
+}
+
+/* MATRIX */
+const canvas=document.getElementById("matrix");
+const ctx=canvas.getContext("2d");
+canvas.height=innerHeight;
+canvas.width=innerWidth;
+
+let letters="01".split("");
+let drops=[];
+
+for(let i=0;i<canvas.width/14;i++) drops[i]=1;
+
+function draw(){
+    ctx.fillStyle="rgba(0,0,0,0.05)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle="#00ff9f";
+    ctx.font="14px monospace";
+
+    for(let i=0;i<drops.length;i++){
+        let text=letters[Math.floor(Math.random()*letters.length)];
+        ctx.fillText(text,i*14,drops[i]*14);
+
+        if(drops[i]*14>canvas.height) drops[i]=0;
+        drops[i]++;
+    }
+}
+setInterval(draw,33);
+
+
+</script>
+
+</body>
+</html>
