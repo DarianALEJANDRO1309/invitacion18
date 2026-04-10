@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">   
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>System Party</title>
 
 <style>
@@ -189,7 +189,7 @@ button {
         <p>📅 Fecha: 01/04/2026</p>
         <p>🕒 Hora: 13:30HS</p>
         <p>📍 Lugar: Arismendi 6420</p>
-        <p>Las bebidas bebidas no estan incluidas(Alcohol)</p>
+        <p>Las bebidas no estan incluidas(Alcohol)</p>
         <p>Traer bebidas a su gusto</p>
 
         <p id="contador">Cargando asistentes...</p>
@@ -313,7 +313,7 @@ function cargarContador(){
 
 /* CONFIRMACIÓN RPG */
 function confirmar(){
-    escribirDialogo("¿Confirmas asistencia?\n\n");
+    escribirDialogo("¿Confirmas_asistencia?\n\n");
 
     setTimeout(()=>{
         dialogoTexto.innerHTML += `
@@ -362,7 +362,11 @@ function efectoGlitch(){
 
     setTimeout(()=>{
         box.classList.remove("glitch");
-        escribirDialogo("✔ Asistencia confirmada");
+        escribirDialogo("✔ Asistencia_confirmada \n\n");
+
+        setTimeout(()=>{
+            box.innerHTML += `<button onclick="salir()">SALIR</button>`;
+        },800);
     },1500);
 }
 
@@ -410,7 +414,17 @@ function draw(){
 }
 setInterval(draw,33);
 
+function salir(){
+    escribirDialogo("Adiós_" + nombreGlobal + "... nos_vemos_pronto 🎉");
 
+    setTimeout(()=>{
+        document.body.innerHTML = `
+        <div style="display:flex;justify-content:center;align-items:center;height:100vh;background:black;color:#00ff9f;font-family:monospace;">
+            <h1>✔ Sesión finalizada</h1>
+        </div>
+        `;
+    },2000);
+}
 </script>
 
 </body>
